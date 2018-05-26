@@ -2,10 +2,33 @@
 
 configfilename="$1"
 
+tempdir="$(mktemp -d)"
+
+# return the name of the file entered, without directory or file extension
+
+getFileName ()
+{
+	filename="$(basename "$1")"
+	touch running.txt
+	printf "(%s) to (%s)" "$filename" "${filename%.*}" >> test.txt
+	echo "${filename%.*}"
+}
+
+# return the file extension of the file entered
+
+getFileExt ()
+{
+	filename="$(basename "$1")"
+	echo "${filename##*.}"
+}
+
+# Export a libreoffice file
+
 exportLibreoffice () 
 {
-	soffice --headless --convert-to pdf --outdir temp "$1" &> /dev/null
-	mv "temp/$(ls temp)" toAppend.pdf	
+	soffice --headless --convert-to pdf --outdir "${tempdir}" "$1" &> /dev/null
+	filename="$(getFileName "$1")"
+	appendFile "${tempdir}"/"${filename}".pdf
 }
 
 appendFile ()
@@ -22,12 +45,11 @@ rm Output.pdf
 
 while read line
 do
-	filename=$(basename -- "$line")
-	fileextension="${filename##*.}"
+	filename="$(basename -- "$line")"
+	fileextension="$(getFileExt "${line}")"
 	if [[ "$fileextension" = "odt" ]] || [[ "$fileextension" = "ods" ]]; then
 		printf "Adding %s (libreoffice export) ... " "$line"
 		exportLibreoffice "$line"
-		appendFile toAppend.pdf
 		printf "done\n"
 	elif [[ "$fileextension" = "pdf" ]]; then
 		printf "Adding %s (pdf append) ... " "$line"
@@ -38,4 +60,4 @@ do
 	fi
 done < "$configfilename"
 
-rm -r temp
+rm -r "${tempdir}"
