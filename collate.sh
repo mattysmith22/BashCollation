@@ -2,7 +2,11 @@
 
 configfilename="$1"
 
-tempdir="$(mktemp -d)"
+rundir="$(pwd)" #The directory that it was written 
+indexdir="$(dirname "$(realpath "$1")")" #The directory that the index file is in
+tempdir="$(mktemp -d)" #The temporary directory
+
+outputFile="$(pwd)/Output.pdf" #The file to output the PDF to.
 
 # return the name of the file entered, without directory or file extension
 
@@ -33,16 +37,18 @@ exportLibreoffice ()
 
 appendFile ()
 {
-	if [ ! -e "Output.pdf" ]; then
-		mv "$1" Output.pdf
+	if [ ! -e "$outputFile" ]; then
+		mv "$1" "$outputFile" 
+		echo "first file"
 	else
-		gs -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOUTPUTFILE=OutputTemp.pdf Output.pdf "$1" > /dev/null
-		mv OutputTemp.pdf Output.pdf
+		gs -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOUTPUTFILE="${tempdir}/OutTemp.pdf" "$outputFile" "$1" > /dev/null
+		mv "${tempdir}/OutTemp.pdf" "$outputFile"
 	fi
 }
 
-rm Output.pdf
-
+rm "$outputFile"
+cd "$indexdir"
+pwd
 while read line
 do
 	filename="$(basename -- "$line")"
@@ -58,6 +64,6 @@ do
 	else
 		printf "Error: Don't know how to process .%s files, cannot export %s\n" "$fileextension" "$filename"
 	fi
-done < "$configfilename"
+done < "$(realpath "$configfilename")"
 
 rm -r "${tempdir}"
