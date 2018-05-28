@@ -76,8 +76,8 @@ printIndex ()
 	
 	while read line
 	do
-		printf "%d: %s" $i "$line"
-		i=( $i + 1 )
+		printf "%d: %s\n" $i "$line"
+		let i++
 	done < "$1"
 }
 
@@ -105,7 +105,6 @@ printHelp ()
 	echo ""
 	echo "collate exec <index> <output>"
 	echo "  runs the index file at <index>. Output file is <output>."
-	
 }
 
 if [ $# -eq 0 ]; then
@@ -118,13 +117,20 @@ elif [[ $1 = "init" ]] && [[ $# -eq 2 ]]; then
 	    printf "Error: A file already exists at %s\n" "$2"
 	else
 	    touch "$2"
-	    printf "Repository created"
+	    printf "Repository created at %s\n" "$2"
 	fi
 elif [[ $1 = "view" ]] && [[ $# -eq 2 ]]; then
-    printIndex $2
-elif [[ $1 = "add" ]] && { [[ $# -eq 2 ]] || [[ $# -eq 3 ]]; }; then
-    echo "Add not yet implemented"
-	exit 1
+    printIndex "$2"
+elif [[ $1 = "add" ]] && { [[ $# -eq 3 ]] || [[ $# -eq 4 ]]; }; then
+    indexdir="$(dirname "$(realpath "$2")")" #The directory that the index file is in
+	abspath="$(realpath "$3")"
+    filename="$(realpath --relative-to="${indexdir}" "${abspath}")"
+    if [[ $# -eq 3 ]]; then
+	    echo "${filename}" >> "$2"
+	else
+	    printf "%di%s %s" $4 "${filename}" "$2"
+	    sed -i --expression=""${4}i"${filename}""" "$2" 
+	fi
 elif [[ $1 = "clear" ]] && [[ $# -eq 2 ]]; then
     echo "Clear not yet implemented"
 	exit 1
