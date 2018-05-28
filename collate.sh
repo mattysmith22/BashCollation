@@ -70,6 +70,17 @@ exportIndex ()
 	rm -r "${tempdir}"
 }
 
+printIndex ()
+{
+	i=1
+	
+	while read line
+	do
+		printf "%d: %s" $i "$line"
+		i=( $i + 1 )
+	done < "$1"
+}
+
 printHelp ()
 {
 	echo "USAGE:"
@@ -82,6 +93,9 @@ printHelp ()
 	echo ""
 	echo "collate add <index> <filepath> <num>"
 	echo "  add the file at <filepath> to the <index> file. It is placed at line number <num>."
+	echo ""
+	echo "collate view <index>"
+	echo "  display a list of all of the files in the index"
 	echo ""
 	echo "collate clear <index>"
 	echo "  clears the <index> of all file paths"
@@ -100,8 +114,14 @@ if [ $# -eq 0 ]; then
 	printHelp
 	exit 0
 elif [[ $1 = "init" ]] && [[ $# -eq 2 ]]; then
-    echo "Init not yet implemented"
-	exit 1
+    if [[ -e "$2" ]]; then
+	    printf "Error: A file already exists at %s\n" "$2"
+	else
+	    touch "$2"
+	    printf "Repository created"
+	fi
+elif [[ $1 = "view" ]] && [[ $# -eq 2 ]]; then
+    printIndex $2
 elif [[ $1 = "add" ]] && { [[ $# -eq 2 ]] || [[ $# -eq 3 ]]; }; then
     echo "Add not yet implemented"
 	exit 1
