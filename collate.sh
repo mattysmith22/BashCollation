@@ -115,12 +115,15 @@ if [ $# -eq 0 ]; then
 elif [[ $1 = "init" ]] && [[ $# -eq 2 ]]; then
     if [[ -e "$2" ]]; then
 	    printf "Error: A file already exists at %s\n" "$2"
+		exit 0
 	else
 	    touch "$2"
 	    printf "Repository created at %s\n" "$2"
+		exit 1
 	fi
 elif [[ $1 = "view" ]] && [[ $# -eq 2 ]]; then
     printIndex "$2"
+	exit 0
 elif [[ $1 = "add" ]] && { [[ $# -eq 3 ]] || [[ $# -eq 4 ]]; }; then
     indexdir="$(dirname "$(realpath "$2")")" #The directory that the index file is in
 	abspath="$(realpath "$3")"
@@ -131,9 +134,16 @@ elif [[ $1 = "add" ]] && { [[ $# -eq 3 ]] || [[ $# -eq 4 ]]; }; then
 	    printf "%di%s %s" $4 "${filename}" "$2"
 	    sed -i --expression=""${4}i"${filename}""" "$2" 
 	fi
+	exit 0
 elif [[ $1 = "clear" ]] && [[ $# -eq 2 ]]; then
-    echo "Clear not yet implemented"
-	exit 1
+    if [[ -e "$2" ]]; then
+	    echo -n > $2
+		echo "Index file cleared"
+		exit 0
+	else
+	    echo "Error: index file does not exist"
+		exit 1
+	fi
 elif [[ $1 = "exec" ]] && { [[ $# -eq 2 ]] || [[ $# -eq 3 ]]; }; then
     if [[ $# -eq 3 ]]; then
 	    exportIndex "$2" "$3"
@@ -143,9 +153,10 @@ elif [[ $1 = "exec" ]] && { [[ $# -eq 2 ]] || [[ $# -eq 3 ]]; }; then
 	exit 0
 elif [[ $1 = "help" ]]; then
     printHelp
+	exit 0
 else
     echo "Please enter a valid commmand"
 	echo ""
 	printHelp
-	exit 0 
+	exit 1 
 fi
